@@ -1,0 +1,1 @@
+Read agents/scout/AGENT.md and agents/scout/workflows/search-flights.md. Search for flights or check tracked prices. If the user provides a route and date (e.g. "SIN NRT 2026-05-14"), search that route and offer to track it. If no arguments, show all currently tracked routes with latest prices. Arguments: $ARGUMENTS

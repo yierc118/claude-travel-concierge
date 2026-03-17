@@ -1,0 +1,1 @@
+Read agents/accommodation/AGENT.md and agents/accommodation/workflows/find-accommodation.md. Search for accommodation options. Arguments should include: city, check-in date, check-out date, number of guests. Example: "Tokyo 2026-05-14 2026-05-18 1". Arguments: $ARGUMENTS

@@ -1,0 +1,1 @@
+Launch the travel concierge dashboard server. Run: python tools/dashboard_server.py (Note: dashboard_server.py is built in Plan 3. If it does not exist yet, inform the user that the dashboard is not yet built.) Then open http://localhost:8000 in the browser.
