@@ -82,7 +82,7 @@ Agent-maintained. Updated each session. Do not edit manually unless correcting a
 | Plan | Status | Path |
 |---|---|---|
 | Plan 1: Foundation | Ready to implement | `docs/superpowers/plans/2026-03-17-foundation.md` |
-| Plan 2: hotelclaw skill | Not started (after Plan 1) | TBD |
+| Plan 2: hotelclaw skill | Complete | `skills/hotelclaw/` |
 | Plan 3: Dashboard | Not started (after Plan 1) | TBD |
 
 **Spec:** `docs/superpowers/specs/2026-03-17-travel-concierge-design.md`
