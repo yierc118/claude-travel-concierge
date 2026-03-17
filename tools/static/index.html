@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel Concierge</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <span class="logo">&#x2708;&#xFE0F; Travel Concierge</span>
+      <nav class="tabs" id="tabs">
+        <button class="tab active" data-tab="trips">Trips</button>
+        <button class="tab" data-tab="scout">Scout</button>
+        <button class="tab" data-tab="hotels">Hotels</button>
+        <button class="tab" data-tab="itinerary">Itinerary</button>
+        <button class="tab" data-tab="budget">Budget</button>
+        <button class="tab" data-tab="crons">Crons</button>
+      </nav>
+      <div class="live-indicator" id="live-indicator">&#x26AA; connecting</div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Trips tab -->
+    <section class="tab-panel active" id="panel-trips">
+      <div class="panel-header">
+        <h2>Trips</h2>
+        <button class="btn-primary" onclick="alert('Run /plan-trip in Claude Code to start a new trip.')">+ New Trip</button>
+      </div>
+      <div id="trips-grid" class="card-grid">
+        <p class="empty-state">Loading trips...</p>
+      </div>
+    </section>
+
+    <!-- Scout tab -->
+    <section class="tab-panel" id="panel-scout">
+      <div class="panel-header">
+        <h2>Flight Scout</h2>
+        <button class="btn-primary" onclick="alert('Run /check-flights in Claude Code to track a route.')">+ Track Route</button>
+      </div>
+      <div id="scout-content">
+        <p class="empty-state">Loading flight data...</p>
+      </div>
+    </section>
+
+    <!-- Hotels tab -->
+    <section class="tab-panel" id="panel-hotels">
+      <div class="panel-header">
+        <h2>Hotels</h2>
+        <button class="btn-primary" onclick="alert('Run /find-hotels in Claude Code to search accommodation.')">+ Add Property</button>
+      </div>
+      <div id="hotels-content">
+        <p class="empty-state">Loading accommodation data...</p>
+      </div>
+    </section>
+
+    <!-- Itinerary tab -->
+    <section class="tab-panel" id="panel-itinerary">
+      <div class="panel-header">
+        <h2>Itinerary</h2>
+        <div id="itinerary-trip-selector"></div>
+      </div>
+      <div id="itinerary-view">
+        <p class="empty-state">Select a trip to view its itinerary.</p>
+      </div>
+      <div id="itinerary-edit" style="display:none">
+        <textarea id="itinerary-textarea"></textarea>
+        <div class="edit-actions">
+          <button class="btn-primary" id="save-itinerary">Save</button>
+          <button class="btn-secondary" id="cancel-edit">Cancel</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Budget tab -->
+    <section class="tab-panel" id="panel-budget">
+      <div class="panel-header">
+        <h2>Budget</h2>
+      </div>
+      <div id="budget-content">
+        <p class="empty-state">Loading budget data...</p>
+      </div>
+    </section>
+
+    <!-- Crons tab -->
+    <section class="tab-panel" id="panel-crons">
+      <div class="panel-header">
+        <h2>Scheduled Jobs</h2>
+      </div>
+      <div id="crons-content">
+        <table class="crons-table">
+          <thead>
+            <tr>
+              <th>Job</th>
+              <th>Schedule</th>
+              <th>Last Run</th>
+              <th>Status</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Scout: Price Check</td>
+              <td>Every 6h</td>
+              <td>&#8212;</td>
+              <td><span class="badge badge-grey">Not registered</span></td>
+              <td>Register via /check-flights</td>
+            </tr>
+            <tr>
+              <td>Accommodation: Price Check</td>
+              <td>Every 12h</td>
+              <td>&#8212;</td>
+              <td><span class="badge badge-grey">Not registered</span></td>
+              <td>Register via /find-hotels</td>
+            </tr>
+            <tr>
+              <td>Daily Report (08:00 HKT)</td>
+              <td>Daily 08:00</td>
+              <td>&#8212;</td>
+              <td><span class="badge badge-grey">Not registered</span></td>
+              <td>Trip Planner budget cron</td>
+            </tr>
+            <tr>
+              <td>AirLabs Departure Monitor</td>
+              <td>Every 2h (day-of)</td>
+              <td>&#8212;</td>
+              <td><span class="badge badge-grey">Inactive</span></td>
+              <td>Activates &#x2264;24h before booked flight</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+/* Travel Concierge Dashboard — style.css */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0f1117;
+  color: #e1e4e8;
+  min-height: 100vh;
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+header {
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  height: 56px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.logo {
+  font-weight: 700;
+  font-size: 16px;
+  color: #58a6ff;
+  white-space: nowrap;
+}
+
+/* ─── Tabs ───────────────────────────────────────────────────────────────── */
+.tabs { display: flex; gap: 4px; flex: 1; }
+.tab {
+  background: none;
+  border: none;
+  color: #8b949e;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.tab:hover { background: #21262d; color: #e1e4e8; }
+.tab.active { background: #21262d; color: #58a6ff; }
+
+/* ─── Live indicator ─────────────────────────────────────────────────────── */
+.live-indicator { font-size: 12px; color: #8b949e; white-space: nowrap; }
+
+/* ─── Main content ───────────────────────────────────────────────────────── */
+main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+/* ─── Tab panels ─────────────────────────────────────────────────────────── */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.panel-header h2 { font-size: 20px; font-weight: 600; }
+
+/* ─── Buttons ────────────────────────────────────────────────────────────── */
+.btn-primary {
+  background: #238636;
+  border: 1px solid rgba(240, 246, 252, 0.1);
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 6px 16px;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: #2ea043; }
+
+.btn-secondary {
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  color: #e1e4e8;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 6px 16px;
+  transition: background 0.15s;
+}
+.btn-secondary:hover { background: #30363d; }
+
+/* ─── Trip cards ─────────────────────────────────────────────────────────── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.trip-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.trip-card:hover { border-color: #58a6ff; }
+.trip-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.trip-id { font-size: 13px; font-weight: 600; color: #58a6ff; }
+.trip-route { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+.trip-meta { font-size: 12px; color: #8b949e; }
+
+/* ─── Route / Hotel cards ────────────────────────────────────────────────── */
+.route-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.route-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.route-label { font-weight: 600; font-size: 15px; }
+.route-date  { font-size: 13px; color: #8b949e; }
+.trip-ref    { font-size: 11px; color: #8b949e; margin-left: auto; }
+.route-price { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.price-current { font-size: 18px; font-weight: 700; color: #e1e4e8; }
+.price-na      { color: #8b949e; font-size: 14px; }
+.price-range   { font-size: 12px; color: #8b949e; }
+.booked-badge  { font-size: 12px; color: #3fb950; margin-top: 4px; }
+
+/* ─── Badges ─────────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+.badge-green  { background: #1a3a1f; color: #3fb950; border: 1px solid #2ea043; }
+.badge-yellow { background: #3a2e1f; color: #d29922; border: 1px solid #9e6a03; }
+.badge-orange { background: #3a2a1f; color: #f0883e; border: 1px solid #bd561d; }
+.badge-red    { background: #3a1f1f; color: #f85149; border: 1px solid #b62324; }
+.badge-blue   { background: #1f2a3a; color: #58a6ff; border: 1px solid #1f6feb; }
+.badge-grey   { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+
+/* ─── Itinerary ──────────────────────────────────────────────────────────── */
+.itinerary-content {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 20px;
+  line-height: 1.7;
+  margin-bottom: 12px;
+}
+.itinerary-content h1,
+.itinerary-content h2,
+.itinerary-content h3 { margin: 16px 0 8px; }
+.itinerary-content ul { margin-left: 20px; }
+
+#itinerary-textarea {
+  width: 100%;
+  min-height: 400px;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  color: #e1e4e8;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 16px;
+  resize: vertical;
+  margin-bottom: 12px;
+}
+
+.edit-actions { display: flex; gap: 8px; }
+
+/* ─── Budget ─────────────────────────────────────────────────────────────── */
+.budget-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.budget-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.budget-header h3 { font-size: 16px; font-weight: 600; color: #58a6ff; }
+.budget-bar-wrap {
+  background: #21262d;
+  border-radius: 4px;
+  height: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.budget-bar {
+  background: #238636;
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s;
+}
+.budget-summary {
+  display: flex;
+  gap: 24px;
+  font-size: 13px;
+  color: #8b949e;
+  margin-bottom: 12px;
+}
+.budget-card h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8b949e;
+  margin: 12px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.budget-card ul { list-style: none; font-size: 13px; }
+.budget-card li { padding: 4px 0; border-bottom: 1px solid #21262d; }
+
+/* ─── Crons table ────────────────────────────────────────────────────────── */
+.crons-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.crons-table th {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid #30363d;
+  color: #8b949e;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.crons-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #21262d;
+}
+
+/* ─── Misc ───────────────────────────────────────────────────────────────── */
+.empty-state { color: #8b949e; font-size: 14px; padding: 24px 0; }
+.error { color: #f85149; font-size: 14px; }
+code {
+  background: #21262d;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* ─── Trip selector ──────────────────────────────────────────────────────── */
+#itinerary-trip-selector select {
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  color: #e1e4e8;
+  font-size: 14px;
+  padding: 6px 12px;
+}
