@@ -65,6 +65,11 @@ Update STATUS.md: `Phase: 2-running`
 
 Wait for all three to complete. Update STATUS.md: `Phase: 2.5-checkpoint`
 
+If a subagent fails or produces no output file (flights.json or accommodation.json missing or empty):
+- Log the failure to `output/changelog.md` with ⚠️
+- Continue Phase 2.5 with available data — do not block on partial failure
+- Surface the failure to the user at Phase 2.5: "⚠️ [Scout/Accommodation] Agent failed — [reason if known]. Proceeding with available results."
+
 ## Phase 2.5 — Human Checkpoint
 
 Surface results to user:

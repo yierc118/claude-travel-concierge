@@ -31,6 +31,21 @@ Two uses: (1) daily 08:00 cron report, (2) on-demand budget check.
    Remaining: $1,360
    ```
 
+## Budget Item Schema
+
+Each item in `budget.json` items array follows this structure:
+```json
+{
+  "category": "flight",       // one of: flight, accommodation, food, transport, activities, other
+  "description": "SQ321 SIN→NRT",
+  "amount": 487,              // numeric, USD
+  "type": "confirmed",        // "confirmed" (booked) or "estimate" (projected)
+  "added": "2026-03-17T08:00:00+00:00"  // ISO 8601 UTC timestamp
+}
+```
+
+The `budget_ledger.py` tool enforces these types. Call `add_item(trip_dir, category, description, amount, type)` to write items.
+
 ## Price Classification Logic
 
 ```python
