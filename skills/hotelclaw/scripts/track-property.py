@@ -34,7 +34,7 @@ def main():
     print(f"Getting initial price for {args.name}...")
     initial_price = None
     try:
-        results, _ = search_all_sources(args.city, args.check_in, args.check_out, results_per_source=3)
+        results, _ = search_all_sources(args.name, args.check_in, args.check_out, results_per_source=3)
         match = next((r for r in results if args.name.lower() in r["name"].lower()), None)
         if match:
             initial_price = match["price_per_night"]

@@ -45,5 +45,10 @@ For each city in `skeleton.cities`:
 }
 ```
 
+## Error Handling
+- **Web search fails for a city:** Log the failure to STATUS.md ("Accommodation search failed for [city] — skipping"), continue with remaining cities. Do not abort the whole run.
+- **Fewer than 3 results found for a city:** Write what you have, note the shortage in STATUS.md. Do not fabricate options.
+- **accommodation.json already exists:** Append new cities rather than overwriting. Do not remove existing entries.
+
 ## Output
-Write `trips/[trip-id]/accommodation.json`. Update STATUS.md: append "Accommodation: Phase 2 complete — [N] options found across [M] cities".
+Write `trips/[trip-id]/accommodation.json`. Update STATUS.md: append "Accommodation: Phase 2 complete — [N] options found across [M] cities. Skipped: [list any failed cities]".

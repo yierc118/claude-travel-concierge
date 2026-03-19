@@ -141,6 +141,9 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px; }
 .price-na      { color: #8b949e; font-size: 14px; }
 .price-range   { font-size: 12px; color: #8b949e; }
 .booked-badge  { font-size: 12px; color: #3fb950; margin-top: 4px; }
+.free-cancel   { font-size: 12px; color: #3fb950; margin-top: 4px; }
+.book-link     { display: block; margin-top: 6px; color: #58a6ff; font-size: 12px; text-decoration: none; }
+.book-link:hover { text-decoration: underline; }
 
 /* ─── Badges ─────────────────────────────────────────────────────────────── */
 .badge {
@@ -248,7 +251,19 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px; }
 .crons-table td {
   padding: 12px 14px;
   border-bottom: 1px solid #21262d;
+  vertical-align: top;
 }
+.crons-section-title {
+  color: #8b949e;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 20px 0 8px;
+}
+.crons-section-title:first-child { margin-top: 0; }
+.cmd-truncate { word-break: break-all; }
+.muted { color: #8b949e; line-height: 1.6; }
 
 /* ─── Misc ───────────────────────────────────────────────────────────────── */
 .empty-state { color: #8b949e; font-size: 14px; padding: 24px 0; }
@@ -260,7 +275,8 @@ code {
   font-size: 13px;
 }
 
-/* ─── Trip selector ──────────────────────────────────────────────────────── */
+/* ─── Trip selector (shared — Hotels and Itinerary tabs) ─────────────────── */
+#hotels-trip-selector select,
 #itinerary-trip-selector select {
   background: #21262d;
   border: 1px solid #30363d;
@@ -268,4 +284,5 @@ code {
   color: #e1e4e8;
   font-size: 14px;
   padding: 6px 12px;
+  cursor: pointer;
 }

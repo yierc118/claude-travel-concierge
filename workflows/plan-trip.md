@@ -57,8 +57,8 @@ Pending: Phase 2 — parallel execution ready to launch
 
 When user confirms, dispatch three subagents in parallel (single message, three Agent tool calls):
 
-1. **Scout Agent** — read `agents/scout/AGENT.md`, run `workflows/search-flights.md`, input: `trips/[trip-id]/skeleton.json`
-2. **Accommodation Agent** — read `agents/accommodation/AGENT.md`, run `workflows/find-accommodation.md`, input: `trips/[trip-id]/skeleton.json`
+1. **Scout Agent** — read `agents/scout/AGENT.md`, run `agents/scout/workflows/search-flights.md`, input: `trips/[trip-id]/skeleton.json`
+2. **Accommodation Agent** — read `agents/accommodation/AGENT.md`, run `agents/accommodation/workflows/find-accommodation.md`, input: `trips/[trip-id]/skeleton.json`
 3. **Self (activities)** — generate day-by-day activity suggestions for each city using skeleton dates. Write to `trips/[trip-id]/itinerary.md` as draft sections.
 
 Update STATUS.md: `Phase: 2-running`
@@ -106,4 +106,4 @@ Before registering, run CronList to check if crons for this trip already exist (
 Register the following crons using Claude Code's CronCreate:
 - Scout price check: `every 6 hours` → run `agents/scout/workflows/monitor-prices.md` for this trip
 - Accommodation price check: `every 12 hours` → run `agents/accommodation/workflows/monitor-prices.md` for this trip
-- Daily report: `daily at 08:00 Asia/Hong_Kong` → run `agents/trip-planner/workflows/budget-tracking.md` daily report
+- Daily report: `daily at 08:00 Asia/Hong_Kong` → run `workflows/budget-tracking.md` daily report

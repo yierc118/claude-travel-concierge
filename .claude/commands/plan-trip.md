@@ -1,1 +1,1 @@
-Read agents/trip-planner/AGENT.md and agents/trip-planner/workflows/plan-trip.md. Start Phase 1 of a new trip plan. Ask the user for trip details one question at a time. Arguments (if provided): $ARGUMENTS
+Read workflows/plan-trip.md. Start Phase 1 of a new trip plan. Ask the user for trip details one question at a time. Arguments (if provided): $ARGUMENTS

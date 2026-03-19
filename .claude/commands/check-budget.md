@@ -1,1 +1,1 @@
-Read agents/trip-planner/AGENT.md and agents/trip-planner/workflows/budget-tracking.md. Show budget summary for the specified trip. If no trip ID is provided, list all active trips and their budget status. Arguments (trip ID): $ARGUMENTS
+Read workflows/budget-tracking.md. Show budget summary for the specified trip. If no trip ID is provided, list all active trips and their budget status. Arguments (trip ID): $ARGUMENTS

@@ -23,6 +23,8 @@ Agent-maintained. Updated each session. Do not edit manually unless correcting a
 - Does not want to be asked about confirmation on implementation details unless there's genuine ambiguity
 - Wants cost estimates / credit usage flagged before any paid API call (e.g. AirLabs)
 - Timezone: Asia/Hong_Kong (UTC+08:00) for all date/time operations
+- **Full travel preferences** (flights, accommodation, food, travel style, loyalty accounts): `reference/yier-preferences.md`
+  - Sensitive account numbers stored in `.env` (KRISFLYER_ID, ASIAMILES_ID, MARRIOTT_ID, HYATT_ID, TRIPCOM_ID, BOOKINGCOM_ID)
 
 ---
 
@@ -55,6 +57,20 @@ Agent-maintained. Updated each session. Do not edit manually unless correcting a
 
 ---
 
+## System Cron Jobs (persistent — do not recreate)
+
+Registered in system crontab (`crontab -l` to verify). Survive session close and reboots.
+
+| Job | Schedule | Script | Log |
+|---|---|---|---|
+| Hotel price check | Every 12h at :23 | `skills/hotelclaw/scripts/check-prices.py` | `/tmp/hotelclaw.log` |
+| Daily briefing email | 08:00 HKT daily | `workflows/daily-briefing.py` | `/tmp/travel-briefing.log` |
+| Flight price check | Every 6h at :17 | `skills/flightclaw/scripts/check-prices.py` | `/tmp/flightclaw.log` |
+
+**Do NOT use Claude Code CronCreate for these** — CronCreate jobs are session-only and die when Claude exits. The system crontab is the source of truth. To modify, run `crontab -e`.
+
+---
+
 ## Recurring Issues & Solutions
 
 *(none yet)*
@@ -65,9 +81,9 @@ Agent-maintained. Updated each session. Do not edit manually unless correcting a
 
 | File | Description |
 |---|---|
-| `agents/trip-planner/workflows/plan-trip.md` | Phase 1→2→3 orchestration SOP — skeleton, parallel dispatch, reconciliation |
-| `agents/trip-planner/workflows/update-itinerary.md` | Edit living itinerary document in response to user requests |
-| `agents/trip-planner/workflows/budget-tracking.md` | Daily 08:00 cron report + on-demand budget check |
+| `workflows/plan-trip.md` | Phase 1→2→3 orchestration SOP — skeleton, parallel dispatch, reconciliation |
+| `workflows/update-itinerary.md` | Edit living itinerary document in response to user requests |
+| `workflows/budget-tracking.md` | Daily 08:00 cron report + on-demand budget check |
 | `agents/scout/workflows/search-flights.md` | Phase 2 flight search via FlightClaw, writes flights.json |
 | `agents/scout/workflows/monitor-prices.md` | 6h cron — check all tracked routes, append price history, alert on drops |
 | `agents/scout/workflows/track-departure.md` | Day-of AirLabs departure monitor for booked flights |

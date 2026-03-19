@@ -9,6 +9,9 @@ import time
 import random
 import logging
 from typing import Any
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env"))
 
 logger = logging.getLogger(__name__)
 
@@ -34,19 +37,17 @@ def search_google_hotels(city: str, check_in: str, check_out: str, guests: int =
         return []
 
     try:
-        from serpapi import GoogleSearch  # type: ignore
-        params = {
+        import serpapi  # type: ignore
+        client = serpapi.Client(api_key=api_key)
+        raw = client.search({
             "engine": "google_hotels",
             "q": f"hotels in {city}",
             "check_in_date": check_in,
             "check_out_date": check_out,
             "adults": guests,
             "currency": "USD",
-            "api_key": api_key,
-        }
-        search = GoogleSearch(params)
-        raw = search.get_dict()
-        hotels = raw.get("properties", [])[:results]
+        })
+        hotels = (raw.get("properties") or [])[:results]
         out = []
         for h in hotels:
             price = h.get("rate_per_night", {}).get("lowest")
@@ -138,72 +139,9 @@ def search_booking_com(city: str, check_in: str, check_out: str, guests: int = 1
         return []
 
 
-def search_airbnb(city: str, check_in: str, check_out: str, guests: int = 1, results: int = 5) -> list[dict[str, Any]]:
-    """
-    Search Airbnb via Playwright headless browser.
-    Returns empty list and logs warning on failure.
-    """
-    try:
-        from playwright.sync_api import sync_playwright  # type: ignore
-        url = (
-            f"https://www.airbnb.com/s/{city}/homes"
-            f"?checkin={check_in}&checkout={check_out}&adults={guests}"
-        )
-        out = []
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            context = browser.new_context(
-                user_agent=HEADERS["User-Agent"],
-                locale="en-US",
-            )
-            page = context.new_page()
-            _human_delay()
-            page.goto(url, timeout=30000)
-            _human_delay()
-            page.wait_for_load_state("networkidle", timeout=15000)
-
-            cards = page.query_selector_all('[itemprop="itemListElement"]')[:results]
-            for card in cards:
-                try:
-                    name_el = card.query_selector('[id^="title_"]')
-                    price_el = card.query_selector('._tyxjp1')  # price span
-                    link_el = card.query_selector('a[href^="/rooms"]')
-
-                    name = name_el.inner_text().strip() if name_el else "Airbnb listing"
-                    link = "https://www.airbnb.com" + link_el.get_attribute("href") if link_el else ""
-
-                    price = None
-                    if price_el:
-                        raw = price_el.inner_text().strip()
-                        digits = "".join(c for c in raw if c.isdigit() or c == ".")
-                        try:
-                            price = float(digits) if digits else None
-                        except ValueError:
-                            price = None
-
-                    out.append({
-                        "name": name,
-                        "type": "airbnb",
-                        "area": city,
-                        "price_per_night": price,
-                        "currency": "USD",
-                        "url": link,
-                        "source": "airbnb",
-                    })
-                except Exception as card_err:
-                    logger.warning(f"Airbnb card parse error: {card_err}")
-                    continue
-
-            browser.close()
-        return out
-    except Exception as e:
-        logger.warning(f"Airbnb scrape failed: {e}")
-        return []
-
-
 def search_all_sources(city: str, check_in: str, check_out: str, guests: int = 1, results_per_source: int = 3) -> tuple[list[dict], list[str]]:
     """
-    Search all three sources. Returns (results, warnings).
+    Search Google Hotels and Booking.com. Returns (results, warnings).
     Each source fails independently — partial results are returned with warnings.
     """
     warnings = []
@@ -218,10 +156,5 @@ def search_all_sources(city: str, check_in: str, check_out: str, guests: int = 1
     if not booking:
         warnings.append("⚠️ Booking.com: no results (may be blocked or slow)")
     all_results.extend(booking)
-
-    airbnb = search_airbnb(city, check_in, check_out, guests, results_per_source)
-    if not airbnb:
-        warnings.append("⚠️ Airbnb: no results (may be blocked or slow)")
-    all_results.extend(airbnb)
 
     return all_results, warnings

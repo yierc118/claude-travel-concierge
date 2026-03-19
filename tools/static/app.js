@@ -1,5 +1,16 @@
 // Travel Concierge Dashboard — app.js
 
+// ─── Security helpers ──────────────────────────────────────────────────────
+function esc(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 // ─── Tab routing ───────────────────────────────────────────────────────────
 const tabs = document.querySelectorAll('.tab');
 const panels = document.querySelectorAll('.tab-panel');
@@ -16,11 +27,12 @@ tabs.forEach(tab => {
 
 function loadTabData(tab) {
   switch (tab) {
-    case 'trips': loadTrips(); break;
-    case 'scout': loadScout(); break;
-    case 'hotels': loadHotels(); break;
+    case 'trips':     loadTrips(); break;
+    case 'scout':     loadScoutSelector(); break;
+    case 'hotels':    loadHotelSelector(); break;
     case 'itinerary': loadItinerarySelector(); break;
-    case 'budget': loadBudget(); break;
+    case 'budget':    loadBudget(); break;
+    case 'crons':     loadCrons(); break;
   }
 }
 
@@ -49,6 +61,7 @@ function connectSSE() {
 
   eventSource.onerror = () => {
     indicator.textContent = '\uD83D\uDD34 disconnected';
+    eventSource.close();
     setTimeout(connectSSE, 5000);
   };
 }
@@ -76,6 +89,7 @@ function phaseBadge(phase) {
     '2-complete':       ['Phase 2',        'badge-blue'   ],
     '2.5-checkpoint':   ['Review',         'badge-yellow' ],
     '3-complete':       ['Phase 3',        'badge-orange' ],
+    '4-active':         ['Active \u2713',  'badge-green'  ],
     'active':           ['Active \u2713',  'badge-green'  ],
   };
   const [label, cls] = map[phase] || ['Unknown', 'badge-grey'];
@@ -96,26 +110,32 @@ async function loadTrips() {
 
     grid.innerHTML = trips.map(trip => {
       const id = trip._trip_id;
-      const route = trip.cities ? trip.cities.map(c => c.name).join(' \u2192 ') : id;
+      const route = trip.cities ? trip.cities.map(c => esc(c.name)).join(' \u2192 ') : esc(id);
       const firstCity = trip.cities?.[0];
       const lastCity = trip.cities?.[trip.cities.length - 1];
-      const dates = firstCity ? `${firstCity.arrive} \u2013 ${lastCity?.depart || ''}` : '';
+      const dates = firstCity ? `${esc(firstCity.arrive)} \u2013 ${esc(lastCity?.depart || '')}` : '';
       const phase = phaseBadge(trip.phase || 'active');
-      const budget = trip.budget_usd ? `$${trip.budget_usd} USD` : '\u2014';
+      const budget = trip.budget_usd ? `$${esc(trip.budget_usd)} USD` : '\u2014';
       return `
-        <div class="trip-card" onclick="selectTrip('${id}')">
+        <div class="trip-card" data-trip-id="${esc(id)}">
           <div class="trip-card-header">
-            <span class="trip-id">${id}</span>
+            <span class="trip-id">${esc(id)}</span>
             ${phase}
           </div>
           <div class="trip-route">${route}</div>
-          <div class="trip-meta">${dates}${dates ? ' \u00B7 ' : ''}${trip.travellers || 1} traveller(s) \u00B7 Budget: ${budget}</div>
+          <div class="trip-meta">${dates}${dates ? ' \u00B7 ' : ''}${esc(trip.travellers || 1)} traveller(s) \u00B7 Budget: ${budget}</div>
         </div>`;
     }).join('');
   } catch (e) {
     grid.innerHTML = `<p class="error">Failed to load trips: ${e.message}</p>`;
   }
 }
+
+// Trip card clicks use event delegation to avoid onclick injection
+document.getElementById('trips-grid').addEventListener('click', (e) => {
+  const card = e.target.closest('[data-trip-id]');
+  if (card) selectTrip(card.dataset.tripId);
+});
 
 function selectTrip(tripId) {
   // Switch to itinerary tab with this trip pre-selected
@@ -124,49 +144,68 @@ function selectTrip(tripId) {
 }
 
 // ─── Scout tab ─────────────────────────────────────────────────────────────
-async function loadScout() {
-  const el = document.getElementById('scout-content');
+let currentScoutTrip = null;
+
+async function loadScoutSelector() {
+  const sel = document.getElementById('scout-trip-selector');
   try {
     const { trips } = await (await fetch('/api/trips')).json();
-    const allFlights = [];
-
-    for (const trip of trips) {
-      try {
-        const flights = await (await fetch(`/api/trips/${trip._trip_id}/flights`)).json();
-        if (flights.legs) {
-          flights.legs.forEach(leg => { leg._trip_id = trip._trip_id; });
-          allFlights.push(...flights.legs);
-        }
-      } catch (e) {
-        // trip has no flights.json yet — skip silently
-      }
+    if (!trips.length) {
+      sel.innerHTML = '';
+      document.getElementById('scout-content').innerHTML = '<p class="empty-state">No trips yet.</p>';
+      return;
     }
+    sel.innerHTML = `<select id="scout-select">
+      <option value="">All trips</option>
+      ${trips.map(t => `<option value="${esc(t._trip_id)}"${currentScoutTrip === t._trip_id ? ' selected' : ''}>${esc(t._trip_id)}</option>`).join('')}
+    </select>`;
+    document.getElementById('scout-select').addEventListener('change', function () {
+      currentScoutTrip = this.value || null;
+      loadScout(currentScoutTrip);
+    });
+    loadScout(currentScoutTrip);
+  } catch (e) {
+    sel.innerHTML = `<p class="error">Failed to load trips</p>`;
+  }
+}
 
-    if (!allFlights.length) {
+async function loadScout(filterTripId) {
+  const el = document.getElementById('scout-content');
+  el.innerHTML = '<p class="empty-state">Loading...</p>';
+  try {
+    const { flights } = await (await fetch('/api/flights/all')).json();
+
+    const items = filterTripId ? flights.filter(f => f._trip_id === filterTripId) : flights;
+
+    if (!items.length) {
       el.innerHTML = '<p class="empty-state">No flight routes tracked yet. Run <code>/check-flights</code> in Claude Code.</p>';
       return;
     }
 
-    el.innerHTML = allFlights.map(leg => {
+    el.innerHTML = items.map(leg => {
       const history = leg.price_history || [];
-      const currentPrice = history.length ? history[history.length - 1].price : null;
-      const classification = currentPrice ? classifyPrice(currentPrice, history) : null;
+      const currentPrice = history.filter(h => h.price).slice(-1)[0]?.price || null;
+      const classification = currentPrice && history.filter(h => h.price).length >= 3
+        ? classifyPrice(currentPrice, history)
+        : null;
       const prices = history.map(p => p.price).filter(Boolean);
       const minP = prices.length ? Math.min(...prices) : null;
       const maxP = prices.length ? Math.max(...prices) : null;
+      const isTracked = leg._source === 'tracked';
 
       return `
         <div class="route-card">
           <div class="route-header">
-            <span class="route-label">${leg.from || '?'} \u2192 ${leg.to || '?'}</span>
-            <span class="route-date">${leg.date || ''}</span>
-            <span class="trip-ref">${leg._trip_id}</span>
+            <span class="route-label">${esc(leg.from) || '?'} \u2192 ${esc(leg.to) || '?'}</span>
+            <span class="route-date">${esc(leg.date)}</span>
+            <span class="trip-ref">${esc(leg._trip_id || '\u2014')}</span>
           </div>
           <div class="route-price">
-            ${currentPrice ? `<span class="price-current">$${currentPrice}</span>` : '<span class="price-na">No price data</span>'}
-            ${classification ? `<span class="badge ${classification.cls}">${classification.badge} ${classification.label}</span>` : ''}
+            ${currentPrice ? `<span class="price-current">$${esc(currentPrice)}</span>` : '<span class="price-na">No price data</span>'}
+            ${classification ? `<span class="badge ${esc(classification.cls)}">${esc(classification.badge)} ${esc(classification.label)}</span>` : ''}
+            ${!isTracked ? '<span class="badge badge-grey">Research</span>' : ''}
           </div>
-          ${minP && maxP ? `<div class="price-range">Range: $${minP} \u2013 $${maxP} (${history.length} checks)</div>` : ''}
+          ${minP && maxP ? `<div class="price-range">Range: $${esc(minP)} \u2013 $${esc(maxP)} (${esc(history.length)} checks)</div>` : ''}
           ${leg.booked ? '<div class="booked-badge">\u2705 Booked</div>' : ''}
         </div>`;
     }).join('');
@@ -176,62 +215,89 @@ async function loadScout() {
 }
 
 // ─── Hotels tab ────────────────────────────────────────────────────────────
-async function loadHotels() {
-  const el = document.getElementById('hotels-content');
+// Single source of truth: /api/hotels/tracked (reads hotelclaw/data/tracked.json)
+// Same file the cron job uses — always in sync.
+
+let currentHotelsTrip = null;
+
+async function loadHotelSelector() {
+  const sel = document.getElementById('hotels-trip-selector');
   try {
     const { trips } = await (await fetch('/api/trips')).json();
-    const allProps = [];
-
-    for (const trip of trips) {
-      try {
-        const accomm = await (await fetch(`/api/trips/${trip._trip_id}/accommodation`)).json();
-        if (accomm.cities) {
-          accomm.cities.forEach(city => {
-            (city.options || []).forEach(opt => {
-              opt._trip_id = trip._trip_id;
-              opt._city = city.city;
-              opt._nights = city.nights;
-              allProps.push(opt);
-            });
-          });
-        }
-      } catch (e) {
-        // no accommodation.json yet — skip silently
-      }
+    if (!trips.length) {
+      sel.innerHTML = '';
+      document.getElementById('hotels-content').innerHTML = '<p class="empty-state">No trips yet.</p>';
+      return;
     }
+    sel.innerHTML = `<select id="hotels-select">
+      <option value="">All trips</option>
+      ${trips.map(t => `<option value="${esc(t._trip_id)}"${currentHotelsTrip === t._trip_id ? ' selected' : ''}>${esc(t._trip_id)}</option>`).join('')}
+    </select>`;
+    document.getElementById('hotels-select').addEventListener('change', function() {
+      currentHotelsTrip = this.value || null;
+      loadHotels(currentHotelsTrip);
+    });
+    loadHotels(currentHotelsTrip);
+  } catch (e) {
+    sel.innerHTML = `<p class="error">Failed to load trips</p>`;
+  }
+}
 
-    if (!allProps.length) {
-      el.innerHTML = '<p class="empty-state">No accommodation tracked yet. Run <code>/find-hotels</code> in Claude Code.</p>';
+async function loadHotels(filterTripId) {
+  const el = document.getElementById('hotels-content');
+  el.innerHTML = '<p class="empty-state">Loading...</p>';
+  try {
+    // Source: /api/hotels/all — merges accommodation.json research options + hotelclaw tracked prices
+    const { hotels } = await fetch('/api/hotels/all').then(r => r.json());
+
+    const props = filterTripId ? hotels.filter(h => h._trip_id === filterTripId) : hotels;
+
+    if (!props.length) {
+      el.innerHTML = '<p class="empty-state">No hotels found. Use <code>/find-hotels</code> to research properties.</p>';
       return;
     }
 
-    el.innerHTML = allProps.map(prop => {
+    el.innerHTML = props.map(prop => {
       const history = prop.price_history || [];
-      const currentPrice = prop.price_per_night;
-      const classification =
-        currentPrice && history.length >= 3
-          ? classifyPrice(currentPrice, history.map(p => ({ price: p.price })))
-          : null;
+      const latest = history.filter(h => h.price_per_night).slice(-1)[0];
+      const trackedPrice = latest?.price_per_night || null;
+      const displayPrice = trackedPrice || prop.nightly_rate_usd || null;
+      const isTracked = prop._source === 'tracked';
+      const classification = isTracked && trackedPrice && history.filter(h => h.price_per_night).length >= 3
+        ? classifyPrice(trackedPrice, history.map(p => ({ price: p.price_per_night })))
+        : null;
+      const checks = history.filter(h => h.price_per_night).length;
+      const lastChecked = history.slice(-1)[0]?.timestamp
+        ? new Date(history.slice(-1)[0].timestamp).toLocaleString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+        : null;
+      const tripLabel = prop._trip_id || prop.city || '';
 
       return `
         <div class="route-card">
           <div class="route-header">
-            <span class="route-label">${prop.name}</span>
-            <span class="route-date">${prop._city} \u00B7 ${prop._nights} nights</span>
-            <span class="trip-ref">${prop._trip_id}</span>
+            <span class="route-label">${esc(prop.name)}</span>
+            <span class="route-date">${esc(prop.city)} \u00B7 ${esc(prop.nights)} nights</span>
+            <span class="trip-ref">${esc(tripLabel)}</span>
           </div>
           <div class="route-price">
-            ${currentPrice ? `<span class="price-current">$${currentPrice}/night</span>` : '<span class="price-na">No price data</span>'}
+            ${displayPrice
+              ? `<span class="price-current">$${esc(displayPrice)}/night${!isTracked ? ' <small>(est.)</small>' : ''}</span>`
+              : '<span class="price-na">No price data</span>'}
             ${classification
-              ? `<span class="badge ${classification.cls}">${classification.badge} ${classification.label}</span>`
-              : '<span class="badge badge-grey">\u23F3 No data yet</span>'}
+              ? `<span class="badge ${esc(classification.cls)}">${esc(classification.badge)} ${esc(classification.label)}</span>`
+              : isTracked
+                ? '<span class="badge badge-grey">\u23F3 Tracking</span>'
+                : '<span class="badge badge-grey">Research</span>'}
           </div>
-          <div class="price-range">${prop.area || ''} \u00B7 ${prop.type || 'hotel'} \u00B7 ${history.length} checks</div>
+          ${isTracked
+            ? `<div class="price-range">${esc(checks)} checks${lastChecked ? ' \u00B7 last ' + esc(lastChecked) : ''}${prop.target_price ? ' \u00B7 target $' + esc(prop.target_price) + '/night' : ''}</div>`
+            : prop.notes ? `<div class="price-range">${esc(prop.notes.length > 120 ? prop.notes.slice(0, 120) + '\u2026' : prop.notes)}</div>` : ''}
+          ${prop.url ? `<a class="book-link" href="${esc(prop.url)}" target="_blank" rel="noopener">Book \u2192</a>` : ''}
           ${prop.booked ? '<div class="booked-badge">\u2705 Booked</div>' : ''}
         </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="error">Failed to load accommodation data: ${e.message}</p>`;
+    el.innerHTML = `<p class="error">Failed to load hotel data: ${e.message}</p>`;
   }
 }
 
@@ -249,13 +315,25 @@ async function loadItinerarySelector() {
     }
     sel.innerHTML = `<select id="trip-select" onchange="loadItinerary(this.value)">
       <option value="">Select a trip...</option>
-      ${trips.map(t => `<option value="${t._trip_id}">${t._trip_id}</option>`).join('')}
+      ${trips.map(t => `<option value="${esc(t._trip_id)}"${currentItineraryTrip === t._trip_id ? ' selected' : ''}>${esc(t._trip_id)}</option>`).join('')}
     </select>`;
+    // Restore previous selection, or auto-select first trip with an itinerary
     if (currentItineraryTrip) {
-      const selectEl = document.getElementById('trip-select');
-      if (selectEl) {
-        selectEl.value = currentItineraryTrip;
-        loadItinerary(currentItineraryTrip);
+      document.getElementById('trip-select').value = currentItineraryTrip;
+      loadItinerary(currentItineraryTrip);
+    } else {
+      // Try trips in order until we find one with an itinerary
+      for (const trip of trips) {
+        try {
+          const res = await fetch(`/api/trips/${trip._trip_id}/itinerary`);
+          if (res.ok) {
+            document.getElementById('trip-select').value = trip._trip_id;
+            loadItinerary(trip._trip_id);
+            break;
+          }
+        } catch (e) {
+          // skip
+        }
       }
     }
   } catch (e) {
@@ -278,11 +356,13 @@ async function loadItinerary(tripId) {
       return;
     }
     const { content } = await res.json();
-    // Encode content for safe inline attribute passing
-    const encodedContent = encodeURIComponent(content);
     view.innerHTML = `
       <div class="itinerary-content" id="itinerary-rendered">${markdownToHtml(content)}</div>
-      <button class="btn-secondary" onclick="startEditItinerary('${tripId}', decodeURIComponent('${encodedContent}'))">Edit</button>`;
+      <button class="btn-secondary" id="edit-itinerary-btn">Edit</button>`;
+    // Use stored reference — no inline data in attributes
+    document.getElementById('edit-itinerary-btn').addEventListener('click', () => {
+      startEditItinerary(tripId, content);
+    });
     view.style.display = 'block';
     editDiv.style.display = 'none';
   } catch (e) {
@@ -315,9 +395,15 @@ function startEditItinerary(tripId, content) {
 }
 
 // Minimal markdown to HTML: headers, bold, bullet lists, line breaks
+// HTML-escapes raw text first to prevent XSS from itinerary content
 function markdownToHtml(md) {
   if (!md) return '';
-  return md
+  // Escape HTML entities before applying markdown transforms
+  const safe = md
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return safe
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
@@ -358,7 +444,7 @@ async function loadBudget() {
           <div class="budget-card">
             <div class="budget-header">
               <h3>${trip._trip_id}</h3>
-              <span>Budget: $${budget.budget_usd || '?'} USD</span>
+              <span>Budget: ${budget.budget_usd ? '$' + budget.budget_usd + ' USD' : '—'}</span>
             </div>
             <div class="budget-bar-wrap">
               <div class="budget-bar" style="width:${pct}%"></div>
@@ -385,6 +471,72 @@ async function loadBudget() {
     el.innerHTML = sections.join('');
   } catch (e) {
     el.innerHTML = `<p class="error">Failed to load budget: ${e.message}</p>`;
+  }
+}
+
+// ─── Crons tab ──────────────────────────────────────────────────────────────
+async function loadCrons() {
+  const el = document.getElementById('crons-content');
+  el.innerHTML = '<p class="empty-state">Loading...</p>';
+  try {
+    const { jobs } = await fetch('/api/crons').then(r => r.json());
+
+    if (!jobs || !jobs.length) {
+      el.innerHTML = '<p class="empty-state">No cron jobs registered.</p>';
+      return;
+    }
+
+    const travelActive  = jobs.filter(j => j.type === 'system' && j.project === 'travel');
+    const otherActive   = jobs.filter(j => j.type === 'system' && j.project !== 'travel');
+    const planned       = jobs.filter(j => j.type === 'planned');
+
+    function systemRow(job) {
+      return `<tr>
+        <td><code>${esc(job.schedule)}</code></td>
+        <td><code class="cmd-truncate" title="${esc(job.command)}">${esc(job.command.length > 80 ? job.command.slice(0, 80) + '…' : job.command)}</code></td>
+        <td><span class="badge badge-green">Active</span></td>
+      </tr>`;
+    }
+
+    function plannedRow(job) {
+      const badge = job.status === 'ready'
+        ? '<span class="badge badge-yellow">Ready</span>'
+        : '<span class="badge badge-grey">Pending</span>';
+      return `<tr>
+        <td><code>${esc(job.schedule_human || job.schedule)}</code></td>
+        <td>
+          <strong>${esc(job.name)}</strong><br>
+          <small class="muted">${esc(job.description || '')}</small>
+          ${job.condition_human ? `<br><small class="muted">Condition: ${esc(job.condition_human)}</small>` : ''}
+          ${job.note ? `<br><small class="muted">Note: ${esc(job.note)}</small>` : ''}
+        </td>
+        <td>${badge}</td>
+      </tr>`;
+    }
+
+    let html = '';
+
+    if (travelActive.length) {
+      html += `<h4 class="crons-section-title">Travel Concierge — Active</h4>
+        <table class="crons-table"><thead><tr><th>Schedule</th><th>Command</th><th>Status</th></tr></thead>
+        <tbody>${travelActive.map(systemRow).join('')}</tbody></table>`;
+    }
+
+    if (planned.length) {
+      html += `<h4 class="crons-section-title">Travel Concierge — Planned</h4>
+        <table class="crons-table"><thead><tr><th>When</th><th>Job</th><th>Status</th></tr></thead>
+        <tbody>${planned.map(plannedRow).join('')}</tbody></table>`;
+    }
+
+    if (otherActive.length) {
+      html += `<h4 class="crons-section-title">Other Projects</h4>
+        <table class="crons-table"><thead><tr><th>Schedule</th><th>Command</th><th>Status</th></tr></thead>
+        <tbody>${otherActive.map(systemRow).join('')}</tbody></table>`;
+    }
+
+    el.innerHTML = html || '<p class="empty-state">No cron jobs found.</p>';
+  } catch (e) {
+    el.innerHTML = `<p class="error">Failed to load cron status: ${e.message}</p>`;
   }
 }
 

@@ -27,7 +27,7 @@ def main():
     for entry in tracked:
         label = f"{entry['name']} ({entry['city']}, {entry['check_in']})"
         try:
-            results, warnings = search_all_sources(entry["city"], entry["check_in"], entry["check_out"], results_per_source=3)
+            results, warnings = search_all_sources(entry["name"], entry["check_in"], entry["check_out"], results_per_source=3)
             match = next((r for r in results if entry["name"].lower() in r["name"].lower()), None)
             price = match["price_per_night"] if match else None
         except Exception as e:

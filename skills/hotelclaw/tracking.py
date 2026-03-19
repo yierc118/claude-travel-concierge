@@ -1,5 +1,6 @@
 """hotelclaw tracking tools — track, check, list, and remove accommodation."""
 from datetime import datetime, timezone
+from typing import Optional
 from helpers import fmt_price, load_tracked, save_tracked
 from scrapers import search_all_sources, search_booking_com
 
@@ -39,7 +40,7 @@ def register_tracking_tools(mcp):
         return "\n".join(lines)
 
     @mcp.tool()
-    def track_property(name: str, city: str, check_in: str, check_out: str, url: str = "", target_price: float | None = None) -> str:
+    def track_property(name: str, city: str, check_in: str, check_out: str, url: str = "", target_price: Optional[float] = None) -> str:
         """Add a property to price tracking.
 
         Args:
@@ -64,7 +65,7 @@ def register_tracking_tools(mcp):
         # Try to get initial price
         initial_price = None
         try:
-            results, _ = search_all_sources(city, check_in, check_out, guests=1, results_per_source=3)
+            results, _ = search_all_sources(name, check_in, check_out, guests=1, results_per_source=3)
             match = next((r for r in results if name.lower() in r["name"].lower()), None)
             if match:
                 initial_price = match["price_per_night"]

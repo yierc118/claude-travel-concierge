@@ -7,3 +7,4 @@ node_modules/
 .superpowers/
 trips/*/
 !trips/.gitkeep
+skills/flightclaw/data/tracked.json

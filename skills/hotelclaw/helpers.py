@@ -1,7 +1,9 @@
 """hotelclaw helpers — shared utilities for tracking and formatting."""
 import json
 import os
+import tempfile
 from pathlib import Path
+from typing import Optional
 
 DATA_DIR = Path(__file__).parent / "data"
 TRACKED_FILE = DATA_DIR / "tracked.json"
@@ -23,13 +25,19 @@ def load_tracked() -> list:
 
 
 def save_tracked(data: list) -> None:
-    """Save tracked properties to JSON."""
+    """Save tracked properties to JSON using atomic write to prevent data corruption."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    with open(TRACKED_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+    fd, tmp_path = tempfile.mkstemp(dir=DATA_DIR, suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp_path, TRACKED_FILE)
+    except Exception:
+        os.unlink(tmp_path)
+        raise
 
 
-def fmt_price(amount: float | None, currency: str = "USD") -> str:
+def fmt_price(amount: Optional[float], currency: str = "USD") -> str:
     """Format a price for display."""
     if amount is None:
         return "n/a"

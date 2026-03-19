@@ -38,7 +38,7 @@
     <section class="tab-panel" id="panel-scout">
       <div class="panel-header">
         <h2>Flight Scout</h2>
-        <button class="btn-primary" onclick="alert('Run /check-flights in Claude Code to track a route.')">+ Track Route</button>
+        <div id="scout-trip-selector"></div>
       </div>
       <div id="scout-content">
         <p class="empty-state">Loading flight data...</p>
@@ -49,7 +49,7 @@
     <section class="tab-panel" id="panel-hotels">
       <div class="panel-header">
         <h2>Hotels</h2>
-        <button class="btn-primary" onclick="alert('Run /find-hotels in Claude Code to search accommodation.')">+ Add Property</button>
+        <div id="hotels-trip-selector"></div>
       </div>
       <div id="hotels-content">
         <p class="empty-state">Loading accommodation data...</p>
@@ -88,53 +88,14 @@
     <section class="tab-panel" id="panel-crons">
       <div class="panel-header">
         <h2>Scheduled Jobs</h2>
+        <button class="btn-secondary" onclick="loadCrons()">&#8635; Refresh</button>
       </div>
       <div id="crons-content">
-        <table class="crons-table">
-          <thead>
-            <tr>
-              <th>Job</th>
-              <th>Schedule</th>
-              <th>Last Run</th>
-              <th>Status</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Scout: Price Check</td>
-              <td>Every 6h</td>
-              <td>&#8212;</td>
-              <td><span class="badge badge-grey">Not registered</span></td>
-              <td>Register via /check-flights</td>
-            </tr>
-            <tr>
-              <td>Accommodation: Price Check</td>
-              <td>Every 12h</td>
-              <td>&#8212;</td>
-              <td><span class="badge badge-grey">Not registered</span></td>
-              <td>Register via /find-hotels</td>
-            </tr>
-            <tr>
-              <td>Daily Report (08:00 HKT)</td>
-              <td>Daily 08:00</td>
-              <td>&#8212;</td>
-              <td><span class="badge badge-grey">Not registered</span></td>
-              <td>Trip Planner budget cron</td>
-            </tr>
-            <tr>
-              <td>AirLabs Departure Monitor</td>
-              <td>Every 2h (day-of)</td>
-              <td>&#8212;</td>
-              <td><span class="badge badge-grey">Inactive</span></td>
-              <td>Activates &#x2264;24h before booked flight</td>
-            </tr>
-          </tbody>
-        </table>
+        <p class="empty-state">Loading...</p>
       </div>
     </section>
   </main>
 
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v=5"></script>
 </body>
 </html>
