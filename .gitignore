@@ -8,3 +8,7 @@ node_modules/
 trips/*/
 !trips/.gitkeep
 skills/flightclaw/data/tracked.json
+skills/hotelclaw/data/tracked.json
+reference/flightclaw/data/tracked.json
+crons.json
+REVIEW.md
