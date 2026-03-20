@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(~/.pyenv/shims/python*)",
+      "Bash(python*)",
+      "Write(trips/**)",
+      "Edit(trips/**)",
+      "Write(output/**)",
+      "Edit(output/**)",
+      "mcp__claude_ai_Gmail__gmail_create_draft",
+      "mcp__claude_ai_Gmail__gmail_get_profile",
+      "mcp__claude_ai_Gmail__gmail_list_drafts",
+      "mcp__claude_ai_Gmail__gmail_list_labels",
+      "mcp__claude_ai_Gmail__gmail_read_message",
+      "mcp__claude_ai_Gmail__gmail_read_thread",
+      "mcp__claude_ai_Gmail__gmail_search_messages",
+      "mcp__claude_ai_Google_Calendar__gcal_create_event",
+      "mcp__claude_ai_Google_Calendar__gcal_delete_event",
+      "mcp__claude_ai_Google_Calendar__gcal_find_meeting_times",
+      "mcp__claude_ai_Google_Calendar__gcal_find_my_free_time",
+      "mcp__claude_ai_Google_Calendar__gcal_get_event",
+      "mcp__claude_ai_Google_Calendar__gcal_list_calendars",
+      "mcp__claude_ai_Google_Calendar__gcal_list_events",
+      "mcp__claude_ai_Google_Calendar__gcal_respond_to_event",
+      "mcp__claude_ai_Google_Calendar__gcal_update_event",
+      "mcp__claude_ai_composio-google-calendar__GOOGLECALENDAR_CREATE_EVENT",
+      "mcp__claude_ai_composio-google-calendar__GOOGLECALENDAR_DELETE_EVENT",
+      "mcp__claude_ai_composio-google-calendar__GOOGLECALENDAR_FIND_EVENT",
+      "mcp__claude_ai_composio-google-calendar__GOOGLECALENDAR_GET_CALENDAR",
+      "mcp__claude_ai_composio-google-calendar__GOOGLECALENDAR_EVENTS_GET",
+      "mcp__claude_ai_composio-google-calendar__GOOGLECALENDAR_EVENTS_LIST_ALL_CALENDARS",
+      "mcp__claude_ai_composio-google-calendar__GOOGLECALENDAR_PATCH_EVENT",
+      "mcp__claude_ai_composio-google-calendar__GOOGLECALENDAR_UPDATE_EVENT",
+      "mcp__claude_ai_composio-google-calendar__GOOGLECALENDAR_QUICK_ADD",
+      "mcp__claude_ai_composio-google-calendar__GOOGLECALENDAR_CALENDAR_LIST_GET"
+    ]
+  }
+}

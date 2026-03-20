@@ -4,6 +4,22 @@ Agent-maintained. Each automated run appends a brief entry.
 
 ---
 
+## 2026-03-20 (session 4)
+
+### 🗂 crons.json — restructured into active/conditional registry
+
+Replaced the single `planned` array with two sections:
+- `active` — the 3 persistent system cron jobs (monitor-flights, monitor-hotels, daily-briefing) now visible in dashboard
+- `conditional` — departure check (manual register/deregister per trip); fixed script reference from `tools/airlabs.py` (raw tool) to `tools/monitor_departure.py` (SDK wrapper, not yet built — noted as scaffold)
+
+Dashboard `GET /crons` now reflects the full cron picture.
+
+### 📋 skills/arrival-cards — scaffolded
+
+Created `skills/arrival-cards/SKILL.md` with country reference for SG, JP, TH, UK, AU. Field mappings point to trip state files. 4-phase implementation roadmap included. Added Plan 4 to MEMORY.md implementation status.
+
+---
+
 ## 2026-03-18 (session 3)
 
 ### 🔧 hotelclaw — fixed SERPAPI_KEY not loading in subprocesses
@@ -129,3 +145,13 @@ Two cron jobs are registered in the system crontab (`crontab -e`) and persist ac
 - Fix deprecated `@app.on_event("startup")` in `dashboard_server.py`
 - hotelclaw: add retry with exponential backoff, fix Booking.com date format, URL-encode city param, add date validation, implement `search_dates` tool, add tests
 - Run `pytest tests/ -v` and create final commit: `feat: foundation complete`
+
+[2026-03-20] Cron layer migrated to Claude Agent SDK
+- Installed claude-agent-sdk 0.1.49 (Python 3.12 via pyenv)
+- Created tools/monitor_flights.py — Agent SDK wrapper for scout/workflows/monitor-prices.md
+- Created tools/monitor_hotels.py — Agent SDK wrapper for accommodation/workflows/monitor-prices.md
+- Created tools/daily_report.py — Agent SDK wrapper for workflows/budget-tracking.md (daily report)
+- Updated system crontab: all 3 travel cron jobs now use SDK scripts via ~/.pyenv/shims/python
+- Fixed: daily briefing cron was pointing at workflows/daily-briefing.py (did not exist) — now fixed
+- Added PATH line to crontab so `claude` CLI is discoverable by cron
+- Updated MEMORY.md: cron job table + standard documented for all future jobs

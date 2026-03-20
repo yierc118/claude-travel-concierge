@@ -61,13 +61,61 @@ Agent-maintained. Updated each session. Do not edit manually unless correcting a
 
 Registered in system crontab (`crontab -l` to verify). Survive session close and reboots.
 
-| Job | Schedule | Script | Log |
+| Job | Schedule | SDK Script | Log |
 |---|---|---|---|
-| Hotel price check | Every 12h at :23 | `skills/hotelclaw/scripts/check-prices.py` | `/tmp/hotelclaw.log` |
-| Daily briefing email | 08:00 HKT daily | `workflows/daily-briefing.py` | `/tmp/travel-briefing.log` |
-| Flight price check | Every 6h at :17 | `skills/flightclaw/scripts/check-prices.py` | `/tmp/flightclaw.log` |
+| Flight price check | Every 6h at :17 | `tools/monitor_flights.py` | `/tmp/travel-flights.log` |
+| Hotel price check | Every 12h at :23 | `tools/monitor_hotels.py` | `/tmp/travel-hotels.log` |
+| Daily briefing email | 08:00 HKT daily | `tools/daily_report.py` | `/tmp/travel-briefing.log` |
 
-**Do NOT use Claude Code CronCreate for these** — CronCreate jobs are session-only and die when Claude exits. The system crontab is the source of truth. To modify, run `crontab -e`.
+**Cron job standard — all jobs must follow this pattern:**
+- Entry point: a Python script in `tools/` using `claude_agent_sdk`
+- Runtime: `~/.pyenv/shims/python` (Python 3.12, has SDK installed)
+- The script's prompt tells the agent which workflow markdown file to follow
+- Crontab `PATH` line must include `/Users/yiercao/.local/bin` (for `claude`) and `/Users/yiercao/.pyenv/shims`
+- Log to `/tmp/travel-[name].log`
+- Never call skill scripts or workflow scripts directly from cron — always go through the SDK layer
+
+**Do NOT use Claude Code CronCreate for these** — CronCreate jobs are session-only and die when Claude exits. The system crontab is the source of truth.
+
+**To add a new cron job:**
+1. Create `tools/[job_name].py` using the Agent SDK pattern (see existing scripts for template)
+2. Add the entry to the system crontab: `crontab -e`
+3. Update this table
+4. Log to `output/changelog.md`
+
+---
+
+## Telegram Channel (always-on interface)
+
+The session is accessible via Telegram bot `@yiersclaudebot`. Only Yier's Telegram account is on the allowlist.
+
+**To start the persistent session after a reboot:**
+```bash
+screen -S concierge
+cd "/Users/yiercao/Vibe_Coding/AgenticWorflow_Travel Concierge"
+claude --channels plugin:telegram@claude-plugins-official
+```
+Then detach with **Ctrl+A, D**. Reattach with `screen -r concierge`.
+
+- Bot token + pairing: saved in `.claude/channels/telegram/.env` (auto-loaded)
+- Session dies on Mac shutdown — must be manually restarted after reboot
+- No re-pairing needed after reboot — token and allowlist persist
+
+**Requires:** Claude Code v2.1.80+, Bun installed at `~/.bun/bin/bun`
+
+---
+
+## Session Permissions (.claude/settings.json)
+
+Project-level permissions are set in `.claude/settings.json`. The following are pre-approved (no prompt):
+- `Bash(~/.pyenv/shims/python*)` — run monitoring scripts
+- `Bash(python*)` — run Python tools
+- `Write/Edit(trips/**)` — update trip state files
+- `Write/Edit(output/**)` — write reports and changelog
+- All Gmail MCP tools (read, search, draft)
+- Google Calendar MCP tools (read, create, update, delete events) — both `claude_ai_Google_Calendar` and `composio-google-calendar` servers
+
+To add new permissions: edit `.claude/settings.json` → `permissions.allow` array.
 
 ---
 
@@ -100,5 +148,12 @@ Registered in system crontab (`crontab -l` to verify). Survive session close and
 | Plan 1: Foundation | Ready to implement | `docs/superpowers/plans/2026-03-17-foundation.md` |
 | Plan 2: hotelclaw skill | Complete | `skills/hotelclaw/` |
 | Plan 3: Dashboard | Not started (after Plan 1) | TBD |
+| Plan 4: arrival-cards skill | Scaffolded — build when ready | `skills/arrival-cards/SKILL.md` |
+
+**arrival-cards roadmap (4 phases):**
+1. Scaffold only (current) — agent reads SKILL.md, manually assembles pre-fill checklist
+2. `scripts/check-required.py` — scan skeleton.json, surface deadlines, write STATUS.md action
+3. `scripts/prefill.py` — auto-generate per-country checklist from trip files
+4. Playwright automation for portals that allow it (Singapore ICA first candidate)
 
 **Spec:** `docs/superpowers/specs/2026-03-17-travel-concierge-design.md`
