@@ -38,10 +38,30 @@ Agent-maintained. Updated each session. Do not edit manually unless correcting a
 | Accommodation: hotelclaw (new skill, Plan 2) | Combines Google Hotels + Airbnb + Booking.com scraping; graceful degradation per source | 2026-03-17 |
 | Dashboard tech: Python FastAPI + SSE + vanilla JS | Consistent with Python tool layer; no build step; watchfiles for live updates | 2026-03-17 |
 | Booking Agent: Level B (assisted, pause before payment) | User retains full payment control; no stored credentials | 2026-03-17 |
+| Chope dining bookings: Method C (fully automated) | Tested end-to-end 2026-03-24; Playwright completes booking autonomously when user requests it | 2026-03-24 |
 | Budget tracking: semi-automated | Confirmed bookings auto-written by Booking Agent; manual incidentals via dashboard | 2026-03-17 |
 | Itinerary: living Markdown document, not one-shot | Both agent and user edit; persists across sessions; dashboard renders + edits | 2026-03-17 |
 | Phase 2 parallelism: Claude Code Agent tool calls | Three workstreams (Scout + Accommodation + Activities) dispatched in single message as true parallel subagents | 2026-03-17 |
 | Cron start: Phase 4 (after reconciliation) | Don't monitor options that haven't been chosen yet | 2026-03-17 |
+
+---
+
+## Chope Booking Capability
+
+Fully automated via `scripts/chope_book.py`. Tested and confirmed working 2026-03-24 (Plu Bangkok, conf ID XPIA7JFOGEOX).
+
+**To book a Chope restaurant:**
+- Need: `slug` (URL path, e.g. `plu-bangkok`) + `rid` (widget ID, e.g. `plu1909bkk`)
+- Find slug: `https://www.chope.co/bangkok-restaurants/list_of_restaurants`
+- Find rid: inspect the booking widget URL after clicking Book Now on the restaurant page
+- Credentials: `CHOPE_USERNAME` / `CHOPE_PASSWORD` in `.env`
+- Script: `scripts/chope_book.py` — returns confirmation ID, adds calendar event
+- Full flow documented in: `agents/booking/workflows/book-and-confirm.md` → Method C
+
+**Known restaurants:**
+| Restaurant | Slug | RID | Notes |
+|---|---|---|---|
+| Plu | `plu-bangkok` | `plu1909bkk` | Thai, Sathorn; lunch ends 1:45pm (not 2pm) |
 
 ---
 
@@ -108,10 +128,13 @@ Then detach with **Ctrl+A, D**. Reattach with `screen -r concierge`.
 ## Session Permissions (.claude/settings.json)
 
 Project-level permissions are set in `.claude/settings.json`. The following are pre-approved (no prompt):
-- `Bash(~/.pyenv/shims/python*)` — run monitoring scripts
-- `Bash(python*)` — run Python tools
+- `Bash(~/.pyenv/shims/python*)` / `Bash(python*)` — run Python tools and monitoring scripts
+- `WebSearch` / `WebFetch` — web searches and page fetches
 - `Write/Edit(trips/**)` — update trip state files
 - `Write/Edit(output/**)` — write reports and changelog
+- `Write/Edit(tools/**)` — create/update Python tool scripts
+- `Write/Edit(scripts/**)` — create/update scripts (e.g. reservation scripts)
+- `Write(.tmp/**)` — temporary working files
 - All Gmail MCP tools (read, search, draft)
 - Google Calendar MCP tools (read, create, update, delete events) — both `claude_ai_Google_Calendar` and `composio-google-calendar` servers
 

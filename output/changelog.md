@@ -4,6 +4,34 @@ Agent-maintained. Each automated run appends a brief entry.
 
 ---
 
+## 2026-03-26T12:33+08:00 — Accommodation cron: checked 12 properties across 1 trip. Alerts: 0
+⚠️ HotelClaw unavailable — `serpapi` module not installed (`pip install serpapi` required). No live prices fetched. last_checked timestamps updated. Prices remain at knowledge-based estimates from 2026-03-26.
+
+---
+
+## 2026-03-26T12:21+08:00 — Scout cron: checked 4 routes across 1 trip. Alerts: 0
+⚠️ FlightClaw unavailable — `fast_flights` module not installed (`pip install fast_flights` required). No live prices fetched. last_checked timestamps updated. Prices remain at knowledge-based estimates from 2026-03-26.
+
+---
+
+## 2026-03-24 — Chope booking automation (Method C)
+
+**What changed:**
+- Added `scripts/chope_book.py` — reusable Playwright script for end-to-end Chope restaurant booking
+- Updated `agents/booking/workflows/book-and-confirm.md` — added Method C section with full technical reference
+- Updated `MEMORY.md` — added Chope Capability section with known restaurants table and quick-reference
+
+**What was learned (from live test — Plu Bangkok, conf XPIA7JFOGEOX):**
+- Chope booking widget opens as a new browser tab (`target="_blank"`) — must use `context.on("page")` listener to capture it
+- Widget path is `booking.chope.co/widget/#/booking_index` — date/time NOT passed in URL, must be selected inside widget
+- Calendar uses Vue components with `.vc-day.id-YYYY-MM-DD` selectors
+- Time slots are `.time_item` divs — use exact string match (substring match fails: `"2:00 pm" in "12:00 pm"` is True)
+- "Book table" button disabled until T&C checkbox (`.nav-confirmation-row input[type='checkbox']`) is clicked
+- The form has a separate "Save" button for inline name editing — do not click that
+- Plu last lunch slot: 1:45pm (not 2pm)
+
+---
+
 ## 2026-03-20 (session 4)
 
 ### 🗂 crons.json — restructured into active/conditional registry

@@ -175,10 +175,10 @@ async function loadScout(filterTripId) {
   try {
     const { flights } = await (await fetch('/api/flights/all')).json();
 
-    const items = filterTripId ? flights.filter(f => f._trip_id === filterTripId) : flights;
+    const items = (filterTripId ? flights.filter(f => f._trip_id === filterTripId) : flights).filter(f => !f.booked);
 
     if (!items.length) {
-      el.innerHTML = '<p class="empty-state">No flight routes tracked yet. Run <code>/check-flights</code> in Claude Code.</p>';
+      el.innerHTML = '<p class="empty-state">No unbooked flights to monitor. All flights are confirmed ✅</p>';
       return;
     }
 

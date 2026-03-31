@@ -12,3 +12,5 @@ skills/hotelclaw/data/tracked.json
 reference/flightclaw/data/tracked.json
 crons.json
 REVIEW.md
+client_secret.json
+.mcp.json
